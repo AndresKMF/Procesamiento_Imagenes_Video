@@ -57,8 +57,8 @@ class thetaFilter:
         # Matriz para iterar en toda la imagen
         iterador_columnas, iterador_filas = np.meshgrid(enum_columnas, enum_filas)
         # Encontrar el centro de la imagen
-        mitad_filas = num_filas / 2 - 1 # en filas
-        mitad_columnas = num_columnas / 2 - 1 # en columnas
+        mitad_filas = num_filas / 2  # en filas
+        mitad_columnas = num_columnas / 2  # en columnas
 
         # Máscara del filtro
         mascara_1 = np.zeros_like(self.imagen_gris)
@@ -70,6 +70,9 @@ class thetaFilter:
         idx_total = np.bitwise_and(idx_bajo, idx_alto)
         # Traer solamente las componentes en frecuenciaque cumplan el rango
         mascara_1[idx_total] = 1
+        # Agregar componente DC
+        mascara_1[int(mitad_filas), int(mitad_columnas)] = 1
+
         # cv2.imshow("Mascara", mascara)
         # Rotar 180 grados la primera máscara
         mascara_2 = cv2.rotate(mascara_1, cv2.ROTATE_180)
