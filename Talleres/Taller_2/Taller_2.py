@@ -72,14 +72,14 @@ if __name__ == '__main__':
     cv2.imshow("Imagen original", imagen)
 
     # Aplicar filtros dirreccionales
-    filtros_direccionales(imagen_gris, 0, 45, 90, 135, 5)
+    filtros_direccionales(imagen_gris, 0, 45, 90, 135, 30)
 
     ### PRUEBAS
     '''
     # Crear Objeto theta_filter de la Clase thetaFilter
     theta_filter = thetaFilter(imagen_gris)
     # Asignar ángulo y umbral
-    theta_filter.set_theta(0, 5)
+    theta_filter.set_theta(135, 20)
     # Filtrado
     theta_filter.filtering()
 
