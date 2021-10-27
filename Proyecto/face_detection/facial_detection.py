@@ -1,0 +1,64 @@
+# facial_detection.py
+# USAGE
+# python facial_detection.py --imagen 1_1_2.jpg --prototxt deploy.prototxt.txt --modelo res10_300x300_ssd_iter_140000.caffemodel
+
+# importar los paquetes necesarias
+import numpy as np
+import argparse
+import cv2
+
+# construcción del objeto argumento para la ejecución del código y agregar cada uno de los argumentos al objeto
+ap = argparse.ArgumentParser()
+# ruta de la imagen a la cuál se le detectará la cara
+ap.add_argument("-i", "--imagen", required=True,
+                help="ruta a la imagen de entrada")
+# ruta a la arquitectura del modelo de la red neuronal
+ap.add_argument("-p", "--prototxt", required=True,
+                help="ruta al archivo Caffe prototxt file")
+# ruta al modelo pre-entrenado de la red neuronal, en este archivo se encuentran valores para cada nodo de la red
+ap.add_argument("-m", "--modelo", required=True,
+                help="ruta al modelo Caffe pre-entrenado")
+# valor mínimo de probabilidad para que el modelo de la cara sea aceptado, esto para evitar falso positivos
+ap.add_argument("-c", "--confianza", type=float, default=0.5,
+                help="mínima probabilidad para filtrar detecciones débiles")
+args = vars(ap.parse_args())
+
+# cargar modelo de la red neural
+print("[INFO] cargando modelo...")
+red = cv2.dnn.readNetFromCaffe(args["prototxt"], args["modelo"])
+
+# cargar la imagen de entrada y construir la región de interés (blob) de la imagen
+# cambiando el tamaño de la imagen a 300x300 píxeles y luego normalizandola
+imagen = cv2.imread(args["imagen"]) # cargar imagen
+(h, w) = imagen.shape[:2] # altura y ancho
+# crear región de interés (blob)
+blob = cv2.dnn.blobFromImage(cv2.resize(imagen, (300, 300)), 1.0,
+                             (300, 300), (104.0, 177.0, 123.0))
+
+# pasar la región de interés (blob) por la red neuronal para obtener detecciones y predicciones
+print("[INFO] computanto detecciones en la cara...")
+red.setInput(blob)
+detecciones = red.forward()
+
+# ciclo sobre las detecciones
+for i in range(0, detecciones.shape[2]):
+    # extraer la confianza (probabilidad) asociada a al predicción
+    confianza = detecciones[0, 0, i, 2]
+
+    # filtrar detecciones débiles asegurando que la confianza (probabilidad) de la imagen es mayor a la confianza mínima
+    if confianza > args["confianza"]:
+        # encontrat la pareja ordenada (x,y) compute para la bounding box del objeto
+        box = detecciones[0, 0, i, 3:7] * np.array([w, h, w, h])
+        (comienzo_X, comienzo_Y, final_X, final_Y) = box.astype("int")
+
+        # dibujar la bounding box de la cara junto con su probabilidad
+        texto = "{:.2f}%".format(confianza * 100)
+        y = comienzo_Y - 10 if comienzo_Y - 10 > 10 else comienzo_Y + 10
+        cv2.rectangle(imagen, (comienzo_X, comienzo_Y), (final_X, final_Y),
+                      (0, 0, 255), 2)
+        cv2.putText(imagen, texto, (comienzo_X, y),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 255), 2)
+
+# mostrat imagen de salida
+cv2.imshow("Salida", imagen)
+cv2.waitKey(0)
