@@ -1,0 +1,4 @@
+database: 
+Use la base de datos de caras frontales de caltech, link a continuación:
+
+Faces 1999 (Front): http://www.vision.caltech.edu/archive.html
